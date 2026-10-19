@@ -1,0 +1,184 @@
+/* Dusk — night sky over a horizon, ember light. Dark is the default theme. */
+:root {
+  --bg-canvas: #0c0d1a;
+  --bg-surface: #14152a;
+  --bg-surface-hover: #1c1d38;
+  --line: rgba(255, 170, 130, 0.12);
+  --line-strong: rgba(255, 170, 130, 0.26);
+  --ink: #f4eee8;
+  --ink-muted: #a09cb4;
+  --ink-faint: #6f6b85;
+  --accent-live: #6ee787;
+  /* ember ramp — highlight → shadow */
+  --ember-hi: #ffe0a8;
+  --ember-light: #ffc27a;
+  --ember: #ff7a59;
+  --ember-dark: #e5603f;
+  --ember-deep: #a63f26;
+  --ember-gradient: linear-gradient(180deg, #ffc27a 0%, #ff7a59 100%);
+  /* corner shape shared by components that used the old angular clip */
+  --poly-clip-sm: inset(0 round 12px);
+  --poly-clip-hex: inset(0 round 12px);
+  --glow: rgba(255, 122, 89, 0.42);
+  --glow-soft: rgba(255, 122, 89, 0.16);
+  --ink-on-ember: #2b1208;
+  --ink-on-light: #2b1208;
+  --ember-text: #ffb08a;
+  --hex-line: transparent;
+  /* the sky scene on the Launch screen */
+  --sky-top: #0c0d1a;
+  --sky-mid: #12132a;
+  --sky-low: #2b1a3c;
+  --horizon: #6b2f45;
+  --ground: #090a14;
+  --ground-deep: #0c0d1a;
+  --stars: 0.9;
+  --font-display: "Inter", -apple-system, sans-serif;
+  --font-body: "Inter", -apple-system, sans-serif;
+  --radius-pill: 999px;
+  --radius-md: 14px;
+  --radius-window: 20px;
+}
+
+:root[data-theme="light"] {
+  --bg-canvas: #f7ece4;
+  --bg-surface: #f0e0d4;
+  --bg-surface-hover: #e8d4c5;
+  --line: rgba(120, 60, 40, 0.14);
+  --line-strong: rgba(120, 60, 40, 0.28);
+  --ink: #2a2230;
+  --ink-muted: #7a6e78;
+  --ink-faint: #a89aa0;
+  --accent-live: #3f8f52;
+  --ember-gradient: linear-gradient(180deg, #ff9e5e 0%, #f2663a 100%);
+  --glow: rgba(242, 102, 58, 0.34);
+  --glow-soft: rgba(242, 102, 58, 0.16);
+  --ember-text: #c24a22;
+  --sky-top: #f7ece4;
+  --sky-mid: #f9ddcc;
+  --sky-low: #ffcdae;
+  --horizon: #ffb48a;
+  --ground: #f0e2d7;
+  --ground-deep: #f7ece4;
+  --stars: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  background: transparent;
+}
+
+body {
+  color: var(--ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  user-select: none;
+  transition: color 200ms ease;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Shared motion primitives — used once, deliberately, not scattered on
+   every element. See individual components for where each is applied. */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* A small gold hexagon in front of card headings — the KeySkin honeycomb
+   motif, kept to this one place so it stays a detail. */
+.appearance-block > h3::before {
+  content: "";
+  display: inline-block;
+  width: 9px;
+  height: 10px;
+  margin-right: 8px;
+  background: var(--ember-gradient);
+  border-radius: 50%;
+  filter: drop-shadow(0 0 4px var(--glow));
+}
+
+/* Settings cards arrive one after another. */
+.appearance-block { animation: reveal-up 520ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+.appearance-block:nth-of-type(2) { animation-delay: 70ms; }
+.appearance-block:nth-of-type(3) { animation-delay: 140ms; }
+.appearance-block:nth-of-type(4) { animation-delay: 210ms; }
+.appearance-block:nth-of-type(5) { animation-delay: 280ms; }
+.appearance-block:nth-of-type(n + 6) { animation-delay: 340ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* Dusk's scrollbar: slim, no arrows, a gold thumb that wakes up on hover.
+   (Settings and the terms dialog hide theirs entirely; this covers the
+   rest, such as the Replacer lists.) */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--ember) 34%, transparent);
+  border: 3px solid transparent;
+  background-clip: padding-box;
+  border-radius: 999px;
+  transition: background 140ms ease;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--ember) 62%, transparent);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:active {
+  background: var(--ember);
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-button {
+  display: none;
+}
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
