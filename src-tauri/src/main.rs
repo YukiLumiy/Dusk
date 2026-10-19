@@ -33,6 +33,8 @@ fn main() {
             launch::launch_uri_if_present(app.handle().clone(), &args);
             Ok(())
         })
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .invoke_handler(tauri::generate_handler![
             launch::apply_mods_and_launch,
             protocol::get_protocol_status,

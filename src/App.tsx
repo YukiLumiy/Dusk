@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { TitleBar } from "./components/TitleBar";
+import { UpdateBanner } from "./components/UpdateBanner";
+import { autoUpdateEnabled, checkForUpdate } from "./updater";
 import { HeroBackground } from "./components/HeroBackground";
 import { SunEmblem } from "./components/SunEmblem";
 import { PrimaryButton, SecondaryButton } from "./components/Buttons";
@@ -25,6 +27,13 @@ interface LaunchResult {
 }
 
 export default function App() {
+  // Look for a new release shortly after start (can be turned off in Settings).
+  useEffect(() => {
+    if (!autoUpdateEnabled()) return;
+    const timer = window.setTimeout(checkForUpdate, 3500);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const [view, setView] = useState<View>("home");
   // Which way the screen should slide: forward when entering Settings,
   // backward when returning home — a single directional cue instead of a
@@ -93,6 +102,7 @@ export default function App() {
   return (
     <div className="app">
       <TitleBar />
+      <UpdateBanner />
 
       <div className="screen-viewport">
         <div key={view} className={`screen screen--${direction}`}>

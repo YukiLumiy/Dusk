@@ -4,6 +4,7 @@ import { ToggleSwitch } from "./ToggleSwitch";
 import { AppearanceSection } from "./AppearanceSection";
 import { FastFlagsSection } from "./FastFlagsSection";
 import { SkyboxFixSection } from "./SkyboxFixSection";
+import { UpdateSection } from "./UpdateSection";
 import { FFlagPresetsSection } from "./FFlagPresetsSection";
 import { FFlagProfilesSection } from "./FFlagProfilesSection";
 import { AdvancedSection } from "./AdvancedSection";
@@ -128,6 +129,7 @@ export function SettingsScreen({ onBack, onProfilesChanged }: SettingsScreenProp
       </div>
 
       <AppearanceSection key={appearanceKey} onApplied={refresh} />
+      <UpdateSection />
       <SkyboxFixSection />
       <FFlagPresetsSection />
       <FastFlagsSection />
