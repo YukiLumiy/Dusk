@@ -1,3 +1,4 @@
+import { playSound } from "../sound";
 import { useRef, useState, type AnimationEvent, type CSSProperties, type PointerEvent, type ReactNode } from "react";
 
 interface HeroBackgroundProps {
@@ -29,6 +30,8 @@ export function HeroBackground({ sky, children }: HeroBackgroundProps) {
 
   function go(p: Phase) {
     phaseRef.current = p;
+    if (p === "to-night") playSound("moon");
+    else if (p === "to-day") playSound("sun");
     setPhase(p);
   }
   // Starts the next transition only when none is running: a pointer that

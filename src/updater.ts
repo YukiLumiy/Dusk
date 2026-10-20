@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
+import { playSound } from "./sound";
 
 export type UpdateState =
   | { kind: "idle" }
@@ -43,6 +44,7 @@ export async function checkForUpdate() {
     if (update) {
       pending = update;
       set({ kind: "available", version: update.version, notes: update.body ?? null });
+      playSound("update");
     } else {
       pending = null;
       set({ kind: "none" });

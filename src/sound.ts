@@ -1,25 +1,32 @@
 /*
  * UI sound effects.
  *
- * Sounds are small .ogg files in assets/sfx, decoded once into Web Audio
+ * Sounds are audio files in assets/sfx (ogg, mp3, wav, m4a, flac or opus). A file fills the
+ * slot that matches its name: launch.wav, launch.mp3 and launch.ogg all fill "launch".
+ * They are decoded once into Web Audio
  * buffers so they can overlap and start with almost no latency. Most of the
  * app doesn't call this directly: initSound() installs one delegated
  * listener that plays a fitting sound for every button, picked from the
  * button's class (see pick()). A button can override it with
  * data-sfx="<name>" or silence itself with data-sfx="none".
  */
-import launchUrl from "./assets/sfx/launch.ogg";
-import swipeUrl from "./assets/sfx/swipe.ogg";
-import shimmerUrl from "./assets/sfx/shimmer.ogg";
-import swingUrl from "./assets/sfx/swing.ogg";
-import whooshUrl from "./assets/sfx/whoosh.ogg";
-import tickUrl from "./assets/sfx/tick.ogg";
-import toggleOffUrl from "./assets/sfx/toggle_off.ogg";
-import errorUrl from "./assets/sfx/error.ogg";
-import chimeUrl from "./assets/sfx/chime.ogg";
+// Every audio file in assets/sfx is bundled; the file name picks the slot.
+const FOUND = import.meta.glob("./assets/sfx/*.{ogg,mp3,wav,m4a,flac,opus}", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+const FILES: Record<string, string> = {};
+for (const [path, url] of Object.entries(FOUND)) {
+  const base = (path.split("/").pop() ?? "").replace(/\.[^.]+$/, "").toLowerCase().replace(/[-\s]+/g, "_");
+  FILES[base] = url;
+}
 
 export type SoundName =
   | "launch"
+  | "moon"
+  | "sun"
+  | "update"
   | "swipe"
   | "shimmer"
   | "swing"
@@ -29,21 +36,18 @@ export type SoundName =
   | "error"
   | "chime";
 
-const URLS: Record<SoundName, string> = {
-  launch: launchUrl,
-  swipe: swipeUrl,
-  shimmer: shimmerUrl,
-  swing: swingUrl,
-  whoosh: whooshUrl,
-  tick: tickUrl,
-  toggle_off: toggleOffUrl,
-  error: errorUrl,
-  chime: chimeUrl,
-};
+/** Where each sound is used: launch = Launch button, moon / sun = the sun and
+ *  moon change, update = a new version was found; the rest are button sounds. */
+export const SOUND_NAMES: SoundName[] = [
+  "launch", "moon", "sun", "update", "swipe", "shimmer", "swing", "whoosh", "tick", "toggle_off", "error", "chime",
+];
 
 /** Per-sound trim, so the master volume slider moves everything together. */
 const BASE_GAIN: Record<SoundName, number> = {
   launch: 1,
+  moon: 0.9,
+  sun: 0.9,
+  update: 0.8,
   swipe: 0.9,
   shimmer: 0.85,
   swing: 0.9,
@@ -54,7 +58,10 @@ const BASE_GAIN: Record<SoundName, number> = {
   chime: 0.8,
 };
 
-export const SOUND_NAMES = Object.keys(URLS) as SoundName[];
+export type SoundStatus = "loaded" | "missing" | "failed";
+const status = new Map<SoundName, SoundStatus>();
+/** undefined until the sounds have been loaded once. */
+export const soundStatus = (name: SoundName): SoundStatus | undefined => status.get(name);
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -90,15 +97,30 @@ function ensureContext(): AudioContext | null {
 function loadAll(c: AudioContext): Promise<void> {
   return Promise.all(
     SOUND_NAMES.map(async (name) => {
+      const url = FILES[name];
+      if (!url) {
+        status.set(name, "missing");
+        return;
+      }
       try {
-        const response = await fetch(URLS[name]);
-        const data = await response.arrayBuffer();
-        buffers.set(name, await c.decodeAudioData(data));
-      } catch {
-        // A missing or undecodable sound must never break the UI.
+        const response = await fetch(url);
+        buffers.set(name, await c.decodeAudioData(await response.arrayBuffer()));
+        status.set(name, "loaded");
+      } catch (err) {
+        // A broken sound must never break the UI, but it should be findable.
+        status.set(name, "failed");
+        console.warn(`[sound] "${name}" couldn't be loaded:`, err);
       }
     }),
   ).then(() => undefined);
+}
+
+/** Loads (once) every sound; resolves when each one is loaded or has failed. */
+export function loadSounds(): Promise<void> {
+  const c = ensureContext();
+  if (!c) return Promise.resolve();
+  if (!loading) loading = loadAll(c);
+  return loading;
 }
 
 export function playSound(name: SoundName, options: { gain?: number; rate?: number } = {}) {
@@ -135,15 +157,14 @@ function buttonFrom(target: EventTarget | null): HTMLButtonElement | null {
 function pick(button: HTMLButtonElement): SoundName | null {
   const explicit = button.dataset.sfx;
   if (explicit === "none") return null;
-  if (explicit && explicit in URLS) return explicit as SoundName;
+  if (explicit && (SOUND_NAMES as string[]).includes(explicit)) return explicit as SoundName;
 
   // Runs before React handles the click, so aria-checked is the state the
   // switch is *leaving*.
   if (button.getAttribute("role") === "switch") {
     return button.getAttribute("aria-checked") === "true" ? "toggle_off" : "shimmer";
   }
-  // The Launch button is deliberately silent.
-  if (button.matches(".dusk-btn--primary")) return null;
+  if (button.matches(".dusk-btn--primary")) return "launch";
   if (button.matches(".dusk-btn--secondary, .back-btn")) return "swipe";
   if (button.matches(".terms-link, .terms-close")) return "whoosh";
   if (button.matches(".apply-btn")) return "swing";

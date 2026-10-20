@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { ToggleSwitch } from "./ToggleSwitch";
-import { configureSound } from "../sound";
+import { configureSound, loadSounds, soundStatus, type SoundName } from "../sound";
 
 interface DuskSettings {
   release_channel: string | null;
@@ -14,12 +14,18 @@ interface DuskSettings {
 }
 
 /** Sounds offered in the preview row, as [data-sfx name, label]. */
-const SOUND_PREVIEW: [string, string][] = [
+const SOUND_PREVIEW: [SoundName, string][] = [
   ["launch", "Launch"],
+  ["moon", "Moon"],
+  ["sun", "Sun"],
+  ["update", "Update"],
   ["swipe", "Swipe"],
   ["shimmer", "Shimmer"],
   ["swing", "Swing"],
   ["whoosh", "Whoosh"],
+  ["tick", "Tick"],
+  ["toggle_off", "Toggle off"],
+  ["error", "Error"],
   ["chime", "Chime"],
 ];
 
@@ -53,6 +59,10 @@ export function AdvancedSection() {
   const [cacheMessage, setCacheMessage] = useState<string | null>(null);
   const [cacheError, setCacheError] = useState<string | null>(null);
   const volumeSaveTimer = useRef<number | undefined>(undefined);
+  const [, setSoundsLoaded] = useState(false);
+  useEffect(() => {
+    loadSounds().then(() => setSoundsLoaded(true));
+  }, []);
 
   useEffect(() => {
     invoke<DuskSettings>("get_settings").then((s) => {
@@ -179,11 +189,21 @@ export function AdvancedSection() {
       </div>
       <div className="sfx-chips">
         {SOUND_PREVIEW.map(([name, label]) => (
-          <button key={name} className="sfx-chip" data-sfx={name}>
+          <button
+            key={name}
+            className={`sfx-chip ${soundStatus(name) && soundStatus(name) !== "loaded" ? "sfx-chip--off" : ""}`}
+            data-sfx={name}
+          >
             {label}
           </button>
         ))}
       </div>
+      {SOUND_PREVIEW.some(([name]) => soundStatus(name) && soundStatus(name) !== "loaded") && (
+        <p className="appearance-hint">
+          Struck-through sounds have no usable file. Put a file named like the sound (for example launch.wav or
+          launch.mp3) in src/assets/sfx and rebuild.
+        </p>
+      )}
 
       <div className="field-row">
         <div className="field-text">
@@ -413,6 +433,7 @@ export function AdvancedSection() {
           border-radius: var(--radius-pill);
           transition: color 120ms ease, border-color 120ms ease;
         }
+        .sfx-chip--off { opacity: 0.45; text-decoration: line-through; }
         .sfx-chip:hover {
           color: var(--ink);
           border-color: var(--ember-dark);

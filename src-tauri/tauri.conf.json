@@ -1,6 +1,6 @@
 {
   "productName": "Dusk",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "identifier": "app.dusk.launcher",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -51,9 +51,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk3NjdFRkY5MzJDQjlCNTMKUldSVG04c3krZTlubDRnZUdEcGpramhNNFJ4cjVtSDFrRGNURW9uQmVSVEhiQWhwTWNtUDJsaDYK",
+      "pubkey": "REPLACE_WITH_PUBLIC_KEY",
       "endpoints": [
-        "https://github.com/YukiLumiy/Dusk/releases/latest/download/latest.json"
+        "https://github.com/OWNER/REPO/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"
