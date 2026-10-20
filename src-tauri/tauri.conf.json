@@ -51,9 +51,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "REPLACE_WITH_PUBLIC_KEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZFNkJCRTY5MjQwMkY2OUEKUldTYTlnSWthYjVyL2dPNWtZOExlMFp6ZEtIckloTVN6UFp6cmRGN0hLSnBYaUlOUGV3Y25URmIK",
       "endpoints": [
-        "https://github.com/OWNER/REPO/releases/latest/download/latest.json"
+        "https://github.com/YukiLumiy/Dusk/releases/latest/download/latest.json"
       ],
       "windows": {
         "installMode": "passive"
